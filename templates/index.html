@@ -9,18 +9,18 @@
 </head>
 <body><!--web page content-->
     <h1>Huffman Coding Visualizer</h1><!--Heading-->
-    <form id="input-form">
-        <label for="text">Enter Text:</label>
+    <form id="input-form"><!--input text-->
+        <label for="text">Enter Text:</label><!--label-->
         <input type="text" id="text" required>
         <button type="submit">You can generate a Huffman Tree!</button>
     </form>
 
-    <div id="output">
+    <div id="output"><!--division where the output will be shown-->
         <h2>Huffman Codes:</h2>
-        <ul id="huffman-codes"></ul>
+        <ul id="huffman-codes"></ul><!--unordered list-->
 
         <h2>ASCII Codes:</h2>
-        <pre id="ascii-codes"></pre>
+        <pre id="ascii-codes"></pre><!--preformatted text-->
 
         <h2>Huffman Tree Structure:</h2>
         <pre id="tree-structure"></pre>
@@ -29,11 +29,18 @@
         <p id="ratio"></p>
     </div>
 
+    <!--Javascript section-->
     <script>
+        //When the form will be submitted , the following function will be called
         document.getElementById('input-form').addEventListener('submit', function(event) {
-            event.preventDefault();
+            event.preventDefault();//prevents the default action
             const text = document.getElementById('text').value;
-
+            //sending the data into backend
+            //in json format
+            //'/build_tree' is the route on the backend to handle this request
+            //POST method is used to send data in the body of the request
+            //json format is used to send data in the body of the request
+            //the response is received in json format and then parsed into a javascript object using the.json() method
             fetch('/build_tree', {
                 method: 'POST',
                 headers: {
@@ -43,14 +50,17 @@
             })
             .then(response => response.json())
             .then(data => {
+                //to display huffman codes
                 const huffmanCodesList = document.getElementById('huffman-codes');
-                huffmanCodesList.innerHTML = '';
+                huffmanCodesList.innerHTML = '';//clering the previous input
                 data.huffman_codes.forEach(item => {
                     const li = document.createElement('li');
                     li.textContent = `${item.symbol}: ${item.code} (Freq: ${item.freq})`;
                     huffmanCodesList.appendChild(li);
-                });
-
+                });//Loops the data given by the function
+                //for each symbol and its code, it creates a new list and adding(appending) the list
+                
+                //filling the tree structure returned by the backend
                 document.getElementById('tree-structure').textContent = data.tree_structure;
 
                 // Calculate ASCII codes and ratio
@@ -58,9 +68,9 @@
                 document.getElementById('ascii-codes').textContent = asciiCodes;
 
                 const asciiLength = text.length * 8; // 8 bits for each ASCII character
-                const huffmanLength = data.huffman_codes.reduce((acc, item) => acc + item.code.length * item.freq, 0);
-                const ratio = (huffmanLength / asciiLength).toFixed(2);
-                document.getElementById('ratio').textContent = `Huffman Code Length: ${huffmanLength}, ASCII Code Length: ${asciiLength}, Ratio: ${ratio}`;
+                const huffmanLength = data.huffman_codes.reduce((acc, item) => acc + item.code.length * item.freq, 0);//calculates the toatl number of bits used by huffman encoding, multiplying the length of each huffman code by its frequency.
+                const ratio = (huffmanLength / asciiLength).toFixed(2);//up to two decimal places
+                document.getElementById('ratio').textContent = `Huffman Code Length: ${huffmanLength}, ASCII Code Length: ${asciiLength}, Ratio: ${ratio}`;//inserting the value
             });
         });
     </script>
