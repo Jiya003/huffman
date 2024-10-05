@@ -1,0 +1,68 @@
+<!--HTML Code-->
+<!DOCTYPE html> <!--I am declaring that the document is in HTML5, latest version of HTML-->
+<html lang="en"><!--The document is in english language-->
+<head><!--metadata about the document-->
+    <meta charset="UTF-8"><!--specifing the character encoding as UTF-8, it is a universal encoding , supporting vast range of characters-->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"><!--for responsiveness-->
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}"><!--CSS File in static folder using url_for function-->
+    <title>Huffman Coding Visualizer</title><!--Title of the web page-->
+</head>
+<body><!--web page content-->
+    <h1>Huffman Coding Visualizer</h1><!--Heading-->
+    <form id="input-form">
+        <label for="text">Enter Text:</label>
+        <input type="text" id="text" required>
+        <button type="submit">You can generate a Huffman Tree!</button>
+    </form>
+
+    <div id="output">
+        <h2>Huffman Codes:</h2>
+        <ul id="huffman-codes"></ul>
+
+        <h2>ASCII Codes:</h2>
+        <pre id="ascii-codes"></pre>
+
+        <h2>Huffman Tree Structure:</h2>
+        <pre id="tree-structure"></pre>
+
+        <h2>Ratio of Huffman Codes to ASCII Codes:</h2>
+        <p id="ratio"></p>
+    </div>
+
+    <script>
+        document.getElementById('input-form').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const text = document.getElementById('text').value;
+
+            fetch('/build_tree', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ text })
+            })
+            .then(response => response.json())
+            .then(data => {
+                const huffmanCodesList = document.getElementById('huffman-codes');
+                huffmanCodesList.innerHTML = '';
+                data.huffman_codes.forEach(item => {
+                    const li = document.createElement('li');
+                    li.textContent = `${item.symbol}: ${item.code} (Freq: ${item.freq})`;
+                    huffmanCodesList.appendChild(li);
+                });
+
+                document.getElementById('tree-structure').textContent = data.tree_structure;
+
+                // Calculate ASCII codes and ratio
+                const asciiCodes = Array.from(text).map(char => `${char}: ${char.charCodeAt(0)}`).join('\n');
+                document.getElementById('ascii-codes').textContent = asciiCodes;
+
+                const asciiLength = text.length * 8; // 8 bits for each ASCII character
+                const huffmanLength = data.huffman_codes.reduce((acc, item) => acc + item.code.length * item.freq, 0);
+                const ratio = (huffmanLength / asciiLength).toFixed(2);
+                document.getElementById('ratio').textContent = `Huffman Code Length: ${huffmanLength}, ASCII Code Length: ${asciiLength}, Ratio: ${ratio}`;
+            });
+        });
+    </script>
+</body>
+</html>
